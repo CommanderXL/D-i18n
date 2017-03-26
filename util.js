@@ -22,35 +22,3 @@ _.getLangJSON = function (srcObj = {}, resObj = {}) {
 
   return resObj
 }
-
-_.parse = function () {
-
-}
-
-_.t = function (str, ...args) {
-  if (args.length === 1 && args[0] === 'object') {
-    args = args[0]
-  } else {
-    args = {}
-  }
-
-  if (!args || !args.hasOwnProperty) {
-    args = {}
-  }
-
-  return str.replace(RE_NARGS, (match, prefix, i, index) => {
-    let result = ''
-
-    if (str[index - 1] === '{' && 
-      str[index + match.length] === '}') {
-      return i
-    } else {
-      result = args.hasOwnProperty(i) ? args[i] : match
-      if (!result) {
-        return ''
-      }
-
-      return result
-    }
-  })
-}
