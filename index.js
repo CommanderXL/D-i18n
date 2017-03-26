@@ -1,5 +1,6 @@
 require('shelljs/global')
 const path = require('path')
+const gulp = require('gulp')
 const fs = require('fs')
 const recursiveDir = require('./recursive-dir')
 const _ = require('./util')
@@ -27,3 +28,4 @@ fs.writeFile(LANG_FILE, JSON.stringify(_.getLangJSON(lang, {})), (err, res) => {
   if (err) throw err
   console.log('File has been writed in')
 })
+
