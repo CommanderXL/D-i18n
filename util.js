@@ -3,8 +3,16 @@ const RE_NARGS = /(%|)\{([0-9a-zA-Z_]+)\}/g
 
 // 抽取定义的字段映射
 _.getComment = function (str = '') {
-  let pattern = /(\/\*|<!--)\s*<i18n>\s*(\{[\s\S]+\})\s*<i18n>\s*(-->|\*\/)/i
-  return str.match(pattern)
+  let pattern = /(?:\/\*|<!--)\s*<i18n>\s*(\{[\s\S]+?\})\s*<i18n>\s*(?:-->|\*\/)/ig
+  let arr = []
+  str.replace(pattern, (match, ...args) => {
+    try {
+      arr.push(JSON.parse(args[0]))
+    } catch (e) {
+      throw new Error('args[0] is not a string json')
+    }
+  })
+  return arr
 }
 
 // 将抽取的字段映射转化为按语言分类的字段

@@ -16,21 +16,26 @@ module.exports = function (pathObj = {}) {
     let data = fs.readFileSync(item, 'utf8')
     let res = _.getComment(data)
 
-    if (res) {
-      lang = Object.assign(lang, JSON.parse(res[2]))
+    if (res.length) {
+      res.forEach((item, index) => {
+        lang = Object.assign(lang, item)
+      })
+      // lang = Object.assign(lang, JSON.parse(res[2]))
     }
   })
 
-  rm('-rf', LANG_DIR)
+  /*rm('-rf', LANG_DIR)
   mkdir('-p', LANG_DIR)
-  touch(LANG_FILE)
+  touch(LANG_FILE)*/
 
   let mapLang = _.getLangJSON(lang, {})
 
-  fs.writeFile(LANG_FILE, JSON.stringify(mapLang), (err, res) => {
+  /*fs.writeFile(LANG_FILE, JSON.stringify(mapLang), (err, res) => {
     if (err) throw err
     console.log('Lang Map has been writed in')
-  })
+  })*/
+
+  console.log(mapLang)
 
   return mapLang
 }
