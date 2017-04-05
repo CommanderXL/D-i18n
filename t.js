@@ -1,10 +1,8 @@
-const RE_NARGS = /(%|)\{([0-9a-zA-Z_]+)\}/g
-
-function t(options) {
+module.exports = function t(options) {
   let locale = options.locale || 'zh'
   let messages = options.messages || {}
   function _t(key, ...args) {
-    let str = messages[key]
+    let str = messages[locale][key]
 
     if (args.length === 1 && typeof args[0] === 'object') {
       args = args[0]
@@ -15,6 +13,8 @@ function t(options) {
     if (!args || !args.hasOwnProperty) {
       args = {}
     }
+
+    let RE_NARGS = /(%|)\{([0-9a-zA-Z_]+)\}/g
 
     return str.replace(RE_NARGS, (match, prefix, i, index) => {
       let result = ''
@@ -34,6 +34,3 @@ function t(options) {
 
   return _t
 }
-
-
-module.exports = t
