@@ -1,0 +1,107 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <title></title>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <style>
+    .i18n {
+      background-color: red;
+    }
+  </style>
+</head>
+
+<body>
+  <p data-i18n-class="i18n">i18n-Class</p>
+  <img src="" data-i18n-img="./imgs/${locale}/header-img.png" width="50" height="50"> 
+  <div data-i18n-content="你好"></div>
+  <script>
+    (function (win) {
+      const util = {
+        hasClass(ele, cls) {
+          return new RegExp(cls).test(ele.className || '');
+        },
+        addClass(ele, cls) {
+          var _pattern = new RegExp(cls);
+          if (!_pattern.test(ele.className)) ele.className += ' ' + cls;
+          return ele;
+        },
+        removeClass(ele, cls) {
+          //添加对于DOM元素的判断
+          if (!ele || ele.nodeType !== 1) return;
+          var _pattern = new RegExp(cls);
+          if (_pattern.test(ele.className || '')) ele.className = ele.className.replace(_pattern, '');
+          return ele;
+        }
+      }
+
+      const CLASS_ATTRIBUTE = 'data-i18n-class'
+      const IMG_ATTRIBUTE = 'data-i18n-img'
+      const CONTENT_ATTRIBUTE = 'data-i18n-content'
+      const PLACEHOLDER_ATTRIBUTE = 'data-i18n-placeholder'
+      const LOCALE_PATTERN = /\$\{locale}/g
+
+      class DI18n {
+        constructor(options = {}) {
+          this.locale = options.locale || 'en'
+          this.messages = options.messages || {}
+          this.doms = {}
+
+          this.getDoms()
+
+          this.handlerClass()
+          this.handlerImg()
+          this.handlerContent()
+        }
+
+        getDoms() {
+          this.doms = {
+            classDoms: document.querySelectorAll(`[${CLASS_ATTRIBUTE}]`),
+            imgDoms: document.querySelectorAll(`[${IMG_ATTRIBUTE}]`),
+            contentDoms: document.querySelectorAll(`[${CONTENT_ATTRIBUTE}]`)
+          }
+        }
+
+        handlerClass() {
+          let classDoms = this.doms.classDoms || []
+          classDoms.forEach((dom, index) => {
+            util.addClass(dom, dom.getAttribute(CLASS_ATTRIBUTE))
+          })
+        }
+
+        handlerImg () {
+          this.doms.imgDoms.forEach((dom, index) => {
+            let src = dom.getAttribute(IMG_ATTRIBUTE).replace(LOCALE_PATTERN, this.locale)
+            dom.src = src
+          })
+        }
+
+        handlerContent () {
+          this.doms.contentDoms.forEach((dom, index) => {
+            let content = dom.getAttribute(CONTENT_ATTRIBUTE)
+            dom.innerHTML = this.messages[this.locale][content]
+          })
+        }
+        
+      }
+
+      window.DI18n = DI18n
+    })(window)
+
+    // TODO 完成一个异步加载器
+    let di18n = new DI18n({
+      local: 'zh',
+      messages: {
+        en: {
+          你好: 'Hello'
+        },
+        zh: {
+          你好: '你好'
+        }
+      }
+    })
+  </script>
+</body>
+
+</html>

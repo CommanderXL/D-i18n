@@ -25,7 +25,41 @@
 
 * 技术栈
   * mvvm框架的使用(可直接利用数据的双向绑定)
-    * webpack (D-i18n-locale-loader)处理字符串的内容
+    * webpack (i18n-path-loader)处理字符串的内容. 主要是图片和css样式方面的问题
+1. 开发运行阶段：在开发环节可使用`webpack`插件:`i18n-path-loader`，在代码未编译的阶段规定好**图片的路径**及**class**。这样避免了在业务代码中去写过多的判断语句，去加载不同语言环境的图片或者样式。这样在预编译阶段即完成了这样的功能, 使原有的业务代码更加清晰
+
+// TODO webpack插件的配置,能识别`i18n-path`这样的`loader`名称
+
+使用:
+```javascript
+  webpack中配置, 以vue为例:
+  module.exports = {
+    ...
+    loaders: {
+      test: 'vue',
+      loader: ['vue', 'i18n-path?locale=en']
+    }
+    ...
+  }
+  
+
+  模板文件中
+  <img src="/static/images/${locale}/loader.png"/>
+
+  编译后 --->>>
+  <img src="/static/images/en/loader.png"/>
+
+  css文件中
+  .box {
+    background: url('/static/images/${locale}/loader.png')
+  }
+
+  编译后 --->>>
+  .box {
+    background: url('/static/images/en/loader.png')
+  }
+```
+
   * 非mvvm框架的使用
     * 使用gulp构建工具(静态文件内容翻译, 动态文件内容翻译)
     * 没有使用构建工具, 工具内容 (DOM节点的内容替换)
