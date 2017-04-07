@@ -13,9 +13,10 @@
 </head>
 
 <body>
-  <p data-i18n-class="i18n">i18n-Class</p>
-  <img src="" data-i18n-img="./imgs/${locale}/header-img.png" width="50" height="50"> 
-  <div data-i18n-content="你好"></div>
+  <p i18n-class="i18n">i18n-Class</p>
+  <img src="" i18n-img="./imgs/${locale}/header-img.png" width="50" height="50">
+  <div i18n-content="你好"></div>
+  <input type="text" name="" i18n-placeholder="你好">
   <script>
     (function (win) {
       const util = {
@@ -36,71 +37,129 @@
         }
       }
 
-      const CLASS_ATTRIBUTE = 'data-i18n-class'
-      const IMG_ATTRIBUTE = 'data-i18n-img'
-      const CONTENT_ATTRIBUTE = 'data-i18n-content'
-      const PLACEHOLDER_ATTRIBUTE = 'data-i18n-placeholder'
+      class T {
+        constructor(options) {
+          this.locale = options.locale || 'zh'
+          this.messages = options.messages || {}
+        }
+
+        $t(key, ...args) {
+          let str = this.messages[this.locale][key]
+
+          if (args.length === 1 && typeof args[0] === 'object') {
+            args = args[0]
+          } else {
+            args = {}
+          }
+
+          if (!args || !args.hasOwnProperty) {
+            args = {}
+          }
+
+          let RE_NARGS = /(%|)\{([0-9a-zA-Z_]+)\}/g
+
+          return str.replace(RE_NARGS, (match, prefix, i, index) => {
+            let result = ''
+            if (str[index - 1] === '{' &&
+              str[index + match.length] === '}') {
+              return i
+            } else {
+              result = args.hasOwnProperty(i) ? args[i] : match
+              if (!result) {
+                return ''
+              }
+
+              return result
+            }
+          })
+        }
+      }
+
+      const CLASS_ATTRIBUTE = 'i18n-class'
+      const IMG_ATTRIBUTE = 'i18n-img'
+      const CONTENT_ATTRIBUTE = 'i18n-content'
+      const PLACEHOLDER_ATTRIBUTE = 'i18n-placeholder'
       const LOCALE_PATTERN = /\$\{locale}/g
 
-      class DI18n {
+      class DI18n extends T {
         constructor(options = {}) {
+          super(options)
+
           this.locale = options.locale || 'en'
           this.messages = options.messages || {}
+          this.isReplace = options.isReplace || false
+          this.currMessage = this.messages[this.locale]
           this.doms = {}
 
-          this.getDoms()
+          // 是否进行DOM内容的替换
+          if (this.isReplace) {
+            this.getDoms()
 
-          this.handlerClass()
-          this.handlerImg()
-          this.handlerContent()
+            this.handlerClass()
+            this.handlerImg()
+            this.handlerContent()
+            this.handlerInput()
+          }
         }
 
         getDoms() {
           this.doms = {
             classDoms: document.querySelectorAll(`[${CLASS_ATTRIBUTE}]`),
             imgDoms: document.querySelectorAll(`[${IMG_ATTRIBUTE}]`),
-            contentDoms: document.querySelectorAll(`[${CONTENT_ATTRIBUTE}]`)
+            contentDoms: document.querySelectorAll(`[${CONTENT_ATTRIBUTE}]`),
+            inputDoms: document.querySelectorAll(`[${PLACEHOLDER_ATTRIBUTE}]`)
           }
         }
 
         handlerClass() {
-          let classDoms = this.doms.classDoms || []
-          classDoms.forEach((dom, index) => {
+          this.doms.classDoms.forEach((dom, index) => {
             util.addClass(dom, dom.getAttribute(CLASS_ATTRIBUTE))
           })
         }
 
-        handlerImg () {
+        handlerImg() {
           this.doms.imgDoms.forEach((dom, index) => {
             let src = dom.getAttribute(IMG_ATTRIBUTE).replace(LOCALE_PATTERN, this.locale)
             dom.src = src
           })
         }
 
-        handlerContent () {
+        handlerContent() {
           this.doms.contentDoms.forEach((dom, index) => {
             let content = dom.getAttribute(CONTENT_ATTRIBUTE)
             dom.innerHTML = this.messages[this.locale][content]
           })
         }
-        
+
+        handlerInput() {
+          this.doms.inputDoms.forEach((dom, index) => {
+            let placeHolderKey = dom.getAttribute(PLACEHOLDER_ATTRIBUTE)
+            dom.setAttribute('placeholder', this.currMessage[placeHolderKey])
+          })
+        }
       }
+
+
 
       window.DI18n = DI18n
     })(window)
 
     // TODO 完成一个异步加载器
+    // 完成静态内容的替换工作
     let di18n = new DI18n({
       local: 'zh',
+      isReplace: true,
       messages: {
         en: {
-          你好: 'Hello'
+          你好: 'Hello, {a}'
         },
         zh: {
           你好: '你好'
         }
       }
     })
+
+    console.log(di18n.$t('你好', {a: 'xl'}))
   </script>
 </body>
 

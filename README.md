@@ -63,7 +63,7 @@ class属性:
 
   * 非mvvm框架的使用
     * 使用gulp构建工具(静态文件内容翻译, 动态文件内容翻译)
-1. 开发运行阶段，借助`gulp`构建工具，静态内容的翻译及替换工作同上文的`i18n-path-loader`.
+1. 开发运行阶段，借助`gulp`构建工具,使用`gulp-i18n-path`插件，静态内容的翻译及替换工作同上文的`i18n-path-loader`.
     * 没有使用构建工具, 工具内容 (DOM节点的内容替换)
 * 运行时和编译时的对比
   * 运行时(运行时工具)
@@ -71,12 +71,13 @@ class属性:
 
 翻译函数:
 
-提供一个全局的翻译函数`T`.
+提供一个全局的翻译函数`DI18n`.
 
 ```javascript
-  const $t = new T({
-    locale: 'en',    // 语言环境
-    messages: {      // 语言映射表
+  const di18n = new DI18n({
+    locale: 'en',     // 语言环境
+    isReplace: false, // 是否进行替换(适用于没用使用任何构建工具开发流程)
+    messages: {       // 语言映射表
       en: {
         你好: 'Hello, {person}'
       },
@@ -109,13 +110,11 @@ class属性:
 
 ### TODOS
  
-* env环境的区别
 * 动态翻译函数(通过全局注入一个翻译函数), 静态翻译函数(编译阶段直接进行文案的替换) locale文件必须是文件类型，否则翻译函数无法找到映射表
 * 单/复数(pipe符号去识别)
-* 样式和图片. 在不使用提供双向数据绑定的`framework`或者构建工具的情况下，则使用构建工具进行文本替换data-locale-class="${locale}" or data-locale="/static/img/${locale}/file.png"
-* NPM包
+* `NPM`包
 * 弄明白vue框架的编译过程，然后添加动态翻译功能. 翻译函数(全局?), 模板上的静态文案编译的时候即完成翻译
-* webpack的编译阶段,以及不同插件的执行时机
+* `语言包`的异步加载器
 
 ### Some Tips
 
