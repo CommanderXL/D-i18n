@@ -24,16 +24,16 @@ module.exports = function (pathObj = {}) {
     }
   })
 
-  /*rm('-rf', LANG_DIR)
+  rm('-rf', LANG_DIR)
   mkdir('-p', LANG_DIR)
-  touch(LANG_FILE)*/
+  touch(LANG_FILE)
 
   let mapLang = _.getLangJSON(lang, {})
 
-  /*fs.writeFile(LANG_FILE, JSON.stringify(mapLang), (err, res) => {
+  fs.writeFile(LANG_FILE, JSON.stringify(mapLang), (err, res) => {
     if (err) throw err
     console.log('Lang Map has been writed in')
-  })*/
+  })
 
   console.log(mapLang)
 
