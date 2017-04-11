@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <title></title>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <style>
+    .i18n {
+      text-align: center;
+      font-size: 18px;
+      font-weight: 600;
+    }
+
+    .img-wrapper {
+      padding-top: 30px;
+      text-align: center;
+    }
+
+  </style>
+</head>
+
+<body>
+  <div class="img-wrapper">
+    <img src="" i18n-img="./imgs/${locale}/${locale}.png" width="50" height="50">
+  </div>
+  <p i18n-class="i18n">Hello, DI18n</p>
+  <div i18n-content="你好"></div>
+  <input type="text" name="" i18n-placeholder="你好">
+</body>
+<script src="./node_modules/di18n-translate/dist/di18n.min.js"></script>
+<script>
+  const di18n = new DI18n({
+    locale: 'en',
+    isReplace: true,
+    messages: {
+      en: {
+        你好: 'Hello'
+      },
+      zh: {
+        你好: '你好'
+      }
+    }
+  })
+</script>
+</html>
