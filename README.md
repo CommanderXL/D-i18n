@@ -353,7 +353,18 @@ webpack 2 配置:
   |   |----lang.json
 ```
 
-TODOS: 
+最后梳理下整个方案的流程:
 
-* 提供相关`demo`
+
+基于`webpack`使用`vue`进行开发的`demo`，请参见`/vue-demo`文件夹
+
+不使用构建工具，偏纯静态页面展示的`demo`，请参见`/html-demo`文件夹
+
+TODOS:
 * `gulp`插件
+* 分包环节
+* 语言如何打入到对应js文件中
+```javascript
+  messages: require(`./lang/${__LOCALE__}/lang.json`)
+```
+* 异步?

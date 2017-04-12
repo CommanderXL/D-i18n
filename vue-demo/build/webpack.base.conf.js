@@ -34,7 +34,7 @@ module.exports = {
         test: /\.vue$/,
         loaders: [
           'eslint',
-          'locale-path?outputDir=./src/common&locale=en&inline=true'
+          'locale-path?outputDir=./src/common&locale=en&inline=true',
         ],
         include: projectRoot,
         exclude: /node_modules/

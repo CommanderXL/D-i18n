@@ -9,20 +9,24 @@
       }
     <i18n>
   -->
-  <div id="app ${locale}">
+  <div id="app" :class="dClass">
     <p class="img-wrapper">
-      <img src="./images/${locale}/${locale}.png" width="50" height="50">
+      <img :src="img" width="50" height="50">
     </p>
     <h3 class="title">{{title}}, DI18n</h3>
   </div>
 </template>
 
 <script type="text/ecmascript-6">
+  const LOCALE = 'en'
+  // require(`./images/${LOCALE}/en.png`)
   export default {
     name: 'index-page',
     data () {
       return {
-        title: this.di18n.$t('你好')
+        title: this.di18n.$t('你好'),
+        dClass: LOCALE,
+        img: require(`./images/${LOCALE}/${LOCALE}.png`)
       }
     }
   }
@@ -32,7 +36,7 @@
   #app
     width: 100%
     height: 100%
-    // background: url('./images/${locale}/test.png') no-repeat
+    background: url('./images/${locale}/test.png') no-repeat
   h3
     height 30px
     text-align center

@@ -10,9 +10,11 @@
   "author": "XRene",
   "license": "ISC",
   "devDependencies": {
+    "async": "^2.3.0",
     "gulp": "^3.9.1",
     "gulp-util": "^3.0.8",
     "js-yaml": "^3.8.2",
+    "lodash": "^4.17.4",
     "recursive-readdir-sync": "^1.0.6",
     "shelljs": "^0.7.7",
     "through2": "^2.0.3"
