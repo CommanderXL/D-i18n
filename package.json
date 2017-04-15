@@ -11,6 +11,7 @@
   "license": "ISC",
   "devDependencies": {
     "async": "^2.3.0",
+    "axios": "^0.16.1",
     "gulp": "^3.9.1",
     "gulp-util": "^3.0.8",
     "js-yaml": "^3.8.2",

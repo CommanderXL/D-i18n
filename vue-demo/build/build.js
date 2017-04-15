@@ -18,6 +18,7 @@ rm('-rf', assetsPath)
 mkdir('-p', assetsPath)
 cp('-R', 'static/*', assetsPath)
 
+// 静态资源输出路径
 function pathHandler(path, lang) {
   let pathArr = path.split('/')
   let filename = pathArr.pop()
@@ -25,6 +26,7 @@ function pathHandler(path, lang) {
   return path.join('/')
 }
 
+// preloader处理
 function preloaderHandler(lang, loaderObj) {
   function localeReplace (txt) {
     return txt.replace(/locale=\w+/, `locale=${lang}`)
@@ -38,6 +40,7 @@ function preloaderHandler(lang, loaderObj) {
   }
 }
 
+// 编译
 function webpackCompile(lang, webpackConfig, cb) {
   let config = _.cloneDeep(webpackConfig)
   if (config.module.preLoaders && !config.module.preLoaders.length) {
@@ -64,38 +67,12 @@ function webpackCompile(lang, webpackConfig, cb) {
   })
 }
 
+var spinner = ora('building for production...')
+spinner.start()
+
 async.each(langArr, (lang, cb) => {
   webpackCompile(lang, webpackConfig, cb)
-}, err => console.log(err))
-
-/*langArr.forEach(lang => {
-  let webpackConfig = _.cloneDeep(webpackConfig)
-  webpackConfig.output.path = pathHandler(webpackConfig.output.path)
-  webpackConfig.output.publicPath += `${lang}/`
-  webpackConfig.plugins.forEach(plugin => {
-    if (Object.keys(plugin)[0] === 'options') {
-      plugin.options.filename = pathHandler(plugin.options.filename)
-    }
-  })
-
-  webpack(webpackConfig, function (err, stats) {
-    if (err) throw err
-    process.stdout.write(stats.toString({
-      colors: true,
-      modules: false,
-      children: false,
-      chunks: false,
-      chunkModules: false
-    }) + '\n')
-  })
-})*/
-
-
-/*console.log(
-  '  Tip:\n' +
-  '  Built files are meant to be served over an HTTP server.\n' +
-  '  Opening index.html over file:// won\'t work.\n'
-)
-
-var spinner = ora('building for production...')
-spinner.start()*/
+}, err => {
+  spinner.stop()
+  err && console.log(err)
+})

@@ -82,7 +82,7 @@
 
 - 依据你使用的`构建工具` + 一个通用的`翻译函数`去完成前端国际化
 
-首先，这个通用的**语言翻译函数**: [di18n-translate](https://www.npmjs.com/package/di18n-translate)。它所提供的功能就是静态和动态文案的翻译, 不依赖开发框架及构建工具。可见[demo](...)
+首先，这个通用的**语言翻译函数**: [di18n-translate](https://www.npmjs.com/package/di18n-translate)。它所提供的功能就是静态和动态文案的翻译, 不依赖开发框架及构建工具。
 
 ```javascript
   npm install di18n-translate
@@ -94,7 +94,7 @@
   const DI18n = require('di18n-translate')
   const di18n = new DI18n({
     locale: LOCALE,     // 语言环境 
-    isReplace: false,   // 是否进行替换(适用于没有使用任何构建工具开发流程) 
+    isReplace: false,   // 是否开始运行时(适用于没有使用任何构建工具开发流程) 
     messages: {         // 语言映射表 
       en: {
         你好: 'Hello, {person}'
@@ -104,8 +104,11 @@
       }
     }
   })
+
+  di18n继承于一个翻译类，提供了2个方法`$t`, `$html`:
  
   di18n.$t('你好', {person: 'xl'})   // 输出: Hello, xl
+  di18n.$html(htmlTemp)   // 传入字符串拼接的dom, 返回匹配后的字符串，具体示例可见下文
 
 // 外链形式
   <script src="./lib/di18n-translate/index.js"></script>
@@ -122,27 +125,28 @@
 ```
 这个时候你只需要将这个通用的翻译函数以适当的方式集成到你的开发框架当中去。
 
-`静态/动态文案翻译`的问题解决了，国际化还有一个比较重要的地方就是**样式问题**，比如中文转英文后肯定会遇到文案过长的情况。那么可能需要精简翻译，使文案保持在一定的可接受的长度范围内。但是大部分的情况都是文案在保持原意的情况下无法再进行精简。这时必须要前端来进行样式上的调整，那么可能还需要设计的同学参与进来，对一些文案过多出现折行的情况再单独做样式的定义。在细调样式这块，主要还是通过不同的语言标识去控制不同标签的`class`，来单独定义样式。
 
+接下来会结合具体的不同场景去说明下相应的解决方案：
+
+###使用`MVVM`类的`framework`
+使用了`MVVM`类的`framework`时，可以借助`framework`帮你完成`view`层的渲染工作, 那么你可以在代码当中轻松的通过代码去控制`class`的内容, 以及不同语言环境下的图片替换工作.
+
+例如`vue`, **示例(1)**:
 ```javascript
-  // 中文环境
-  <p class="desc"></p>
 
-  // 英文环境下
-  <p class="desc en"></p>
+main.js文件:
 
-  // 日文环境下
-  <p class="desc jp"></p>
+window.LOCALE = 'en'
+
 ```
 
-在使用`framework`的情况下，`framework`一般都帮你做好了`view`层的渲染工作，那么你可以在代码当中轻松的通过代码去控制`class`的内容, 以及不同语言环境下的图片替换工作。
-
-例如`vue`:
 ```javascript
+
+app.vue文件:
   <template>
     <p class="desc"
       :class="locale"   // locale这个变量去控制class的内容
-      :style="{backgroundImage: 'url(' + bgImg + ')'}" 
+      :style="{backgroundImage: 'url(' + bgImg + ')'}"  // bgImg去控制背景图片的路径
     ></p>
     <img :src="imgSrc"> // imgSrc去控制图片路径
   </template>
@@ -152,116 +156,149 @@
       name: 'page',
       data () {
         return {
-          locale: 'en',
-          imgSrc: require('./img/demo.png'),
-          bgImg: './img/demo.png'
+          locale: LOCALE,
+          imgSrc: require(`./${LOCALE}/img/demo.png`),
+          bgImg: require(`./${LOCALE}/img/demo.png`)
         }
       }
     }
   </script>
 ```
 
-这个时候，你的业务代码中会多出很多这些关于语言环境的变量。
-
-针对这个问题，我希望是在构建工作中去完成语言环境的配置，而不是将这个配置放到业务代码当中。
-
-所以如果你是使用`webpack`进行构建的，那么可以使用[locale-path-loader](https://www.npmjs.com/package/locale-path-loader)这个`preloader`
-
-它所做的**工作之一**是在文件编译阶段，就完成语言环境的配置工作，在你的业务代码中不会出现过多的关于语言环境变量以及很好的解决了运行时作为`css`的`background`的图片替换工作
-
+这个时候你再加入翻译函数，就可以满足大部分的国际化的场景了,现在在`main.js`中添加对翻译函数`di18n-translate`的引用:
 
 ```javascript
-图片路径替换
-  源文件
-  <img src="/static/images/${locale}/loader.png"/>
+main.js文件:
 
-  编译后
-  <img src="/static/images/en/loader.png"/>
+import Vue from 'vue'
 
-css文件中图片路径替换
-  源文件
-  .box {
-    background: url('/static/images/${locale}/loader.png')
-  }
-
-  编译后
-  .box {
-    background: url('/static/images/en/loader.png')
-  }
-
-class属性:
-  源文件
-  <p class="box ${locale}">
-
-  编译后
-  <p class="box en">
-```
-
-这个`loader`还提供了另外的一个功能，提供了一种维护`map`的方式，当前大多数`map`表的维护工作是单独新建不同语言环境的文件夹:
-
-```javascript
-  |--lang
-  |   |
-  |   |--en.json
-  |   |--zh.json
-  |   |--jp.json
-```
-
-开发环节中，你需要在不同的`json`文件中去切换,完成`map`表的维护。
-这个`loader`还提供了**另外一个功能**.就是在你开发目录中任意位置去写语言的映射表，而通过这个`preloader`去将散落在不同文件的语言映射表遍历出来，并生成一个总的语言表:
-
-```javascript
-  在模板文件中:
-  <!--<i18n>
-      {
-        "我爱你": {
-          "en": "I love you",
-          "zh": "我爱你"
-        }
-      }
-  <i18n>-->
-
-  在js文件中:
-  /*<i18n>
-    {
-      "你好": {
-        "en": "Hello",
-        "zh": "你好"
+window.LOCALE = 'en'
+const DI18n = require('di18n-translate')
+const di18n = new DI18n({
+    locale: LOCALE,       // 语言环境
+    isReplace: false,   // 是否进行替换(适用于没有使用任何构建工具开发流程)
+    messages: {         // 语言映射表
+      en: {
+        你好: 'Hello, {person}'
+      },
+      zh: {
+        你好: '你好, {person}'
       }
     }
-  <i18n>*/
+  })
+
+Vue.prototype.d18n = di18n
+
 ```
 
-最后通过这个`preloader`去遍历文件并根据配置路径生成最终的语言包`lang.json`:
-
+翻译函数的基本使用, 当然你还可以使用其他的方式集成到你的开发环境当中去: 
 ```javascript
-{
-  "en": {
-    "我爱你": "I love you",
-    "你好": "Hello"
-  },
-  "zh": {
-    "我爱你": "我爱你",
-    "你好": "你好"
-  }
-}
+app.vue文件:
+  <template>
+    <p class="desc"
+      :class="locale"   // locale这个变量去控制class的内容
+      :style="{backgroundImage: 'url(' + bgImg + ')'}"  // bgImg去控制背景图片的路径
+    ></p>
+    <img :src="imgSrc"> // imgSrc去控制图片路径
+    <p>{{title}}</p>
+  </template>
+
+  <script>
+    export default {
+      name: 'page',
+      data () {
+        return {
+          locale: LOCALE,
+          imgSrc: require(`./${LOCALE}/img/demo.png`),
+          bgImg: require(`./${LOCALE}/img/demo.png`),
+          title: this.di18n.$t('你好')
+        }
+      }
+    }
+  </script>
 ```
 
-`loader`使用方法:
+使用`mvvm framework`进行国际化，上述方式应该是较为合适的，主要是借助了`framework`帮你完成`view`层的渲染工作, 然后再引入一个翻译函数去完成一些动态文案的翻译工作
+
+这种国际化的方式算是运行时处理，不管是开发还是最终上线都只需要一份代码。
+
+当然在使用`mvvm framework`的情况下也是可以不借助`framework`帮我们完成的`view`层的这部分的功能，而通过构建工具去完成, 这部分的套路可以参见下午的**示例3**
+
+### 未使用`mvvm`框架，使用了构建工具(如`webpack`/`gulp`/`browserify`/`fis`)
+
+#### 使用了前端模板
+
+国际化的方式和上面说的使用`mvvm`框架的方式一致，因为有模板引擎帮你完成了`view`层的渲染.所以对于`样式`，`图片`，`class属性`的处理可以和上述方式一致, 动态文案的翻译需引入翻译函数。
+
+这种国际化的方式也算是运行时处理，开发和最终上线都只需要一份代码。
+
+#### 没有使用前端模板
+
+因为没用使用前端模板，便少了对于`view`层的处理。这个时候你的`DOM`结构可能是在`html`文件中一开始就定义好的了，也可能是借助于`webpack`这样能允许你使用模块化进行开发，通过`js`动态插入`DOM`的方式。
+
+接下来我们先说说没有借助`webpack`这样允许你进行模块化开发的构建工具，`DOM`结构直接是在`html`文件中写死的项目。这种情况下你失去了对`view`层渲染能力。那么这种情况下有2种方式去处理这种情况。
+
+第一种方式就是可以在你自己的代码中添加`运行时`的代码。大致的思路就是在`DOM`层面添加属性，这些属性及你需要翻译的`map`表所对应的`key`值:
+
+**示例(2)**:
+
+`html`文件:
+```javascript
+  <div class="wrapper" i18n-class="${locale}">
+    <img i18n-img="/images/${locale}/test.png">
+    <input i18n-placeholder="你好">
+    <p i18n-content="你好"></p>
+  </div>
+```
+运行时:
+```javascript
+  <script src="[PATH]/di18-translate/index.js"></script>
+  <script>
+    const LOCALE = 'en'
+    const di18n = new DI18n({
+      locale: LOCALE,
+      isReplace: true,   // 开启运行时
+      messages: {
+        en: {
+          你好: 'Hello'
+        },
+        zh: {
+          你好: '你好'
+        }
+      }
+    })
+  </script>
+```
+最后`html`会转化为:
+```javascript
+  <div class="wrapper en">
+    <img src="/images/en/test.png">
+    <input placeholder="Hello">
+    <p>Hello</p>
+  </div>
+```
+
+第二种方式就是借助于构建工具在代码编译的环节就完成国际化的工作,以`webpack`为例:
+
+**示例(3)**:
+
+`html`文件:
+```javascript
+  <div class="wrapper ${locale}">
+    <img src="/images/${locale}/test.png">
+    <p>$t('你好')</p>
+  </div>
+```
+
+这个时候使用了一个`webpack`的`preloader`: [locale-path-loader](https://www.npmjs.com/package/locale-path-loader)，它的作用就是在编译编译前，就通过`webpack`完成语言环境的配置工作，在你的业务代码中不会出现过多的关于语言环境变量以及很好的解决了运行时作为`css`的`background`的图片替换工作, 具体的`locale-path-loader`的[文档请戳我](https://www.npmjs.com/package/locale-path-loader)
+
+使用方法:
 
 ```javascript
   npm install locale-path-loader
 ```
 
-参数说明:
-
-* `locale: String` 当前开发环境中语言包配置, 默认为`zh`, 完成`图片`,`css`,`class属性`的替换工作
-* `inline: Boolean`  是否启用内联模式，即使用就近原则，`map`表分散在各文件中，由`loader`去遍历生成最终的`map`表
-* `outputDir: String` 最终`lang.json`语言映射表生成的路径配置(如果开启了`inline`模式需要对此参数进行配置)
-
-以`vue`为例:
-
-webpack 1.x 配置:
+`webpack 1.x` 配置:
 
 ```javascript
   module.exports = {
@@ -280,7 +317,7 @@ webpack 1.x 配置:
   }
 ```
 
-webpack 2 配置:
+`webpack 2` 配置:
 
 ```javascript
   module.exports = {
@@ -304,76 +341,19 @@ webpack 2 配置:
   }
 ```
 
-如果使用`gulp`作为构建工具，可以使用`gulp-locale-path`(还没写- -)这个插件去完成同样的功能.
-
-到这里先简单总结下，**在使用构建工具并搭配`framework`进行开发时，通过构建工具完成`图片`,`css`,及`class属性`的路径替换工作，同时使用上文提供翻译函数基本上可以满足那些基于构建工具，但是不管是否使用`framework`的前端国际化的工作了**
-
-接下来说说没有使用构建工具，偏静态展示性网页的国际化。
-
-这个时候你可能没用`hot reload`或者`live reload`,也没有构建工具帮你完成变量的替换工作。那么在开发环境中如何同时进行不同语言环境的开发工作呢？
-
-在上文提到的`di18n-translate`包中，除了提供了翻译函数外:
+经过`webpack`的`preloader`处理后，被插入到页面中的`DOM`最后成为:
 
 ```javascript
-  const DI18n = require('di18n-translate')
-  const di18n = new DI18n({
-    locale: 'en',       // 语言环境
-    isReplace: false,   // 是否进行替换(适用于没有使用任何构建工具开发流程)
-    messages: {         // 语言映射表
-      en: {
-        你好: 'Hello, {person}'
-      },
-      zh: {
-        你好: '你好, {person}'
-      }
-    }
-  })
-
-  // 有参数
-  di18n.$t('你好', {person: 'xl'})
+  <div class="wrapper en">
+    <img src="/images/en/test.png">
+    <p>Hello</p>
+  </div>
 ```
-
-其中当`isReplace`字段设为`true`时会开启`dom替换模式`,代码中插入的这一段`js`,用以替换`class`, `img`, `静态文案`等内容, 如下:
-
-```javascript
-通过属性配置:
-  <p i18n-class="i18n">i18n-Class</p>
-
-  <img src="" i18n-img="./imgs/${locale}/header-img.png" width="50" height="50">
-
-  <div i18n-content="你好"></div>
-
-  <input type="text" i18n-placeholder="你好">
-```
-
-`di18n`函数会通过属性选择器，将相对应的`dom`元素中需要做国际化的内容进行替换,
-最后得到的结果是
+但是使用这种方案需要在最后的打包环节做下处理，因为通过`preloader`的处理，页面已经被翻译成相对应的语言版本了，所以需要通过构建工具以及改变`preloader`的参数去输出不同的语言版本文件。当然构建工具不止`webpack`这一种，不过这种方式处理的思路是一致的。
+这种方式属于编译时处理，开发时只需要维护一份代码，但是最后输出的时候会输出不同语言包的代码。当然这个方案还需要服务端的支持，根据不同语言环境请求，返回相对应的入口文件。关于这里使用`webpack`搭配`locale-path-loader`进行分包的内容可参见`vue-demo`:
 
 ```javascript
-  <p class="i18n">i18n-Class</p>
-
-  <img src="./imgs/en/header-img.png" width="50" height="50">
-
-  <div>你好</div>
-
-  <input type="text" placeholder="你好">
-
-  需要动态翻译的内容就借助实例化的di18n.$t进行处理
-
-  di18n.$t('你好', {person: 'xl'})   //输入: 你好, xl
-```
-
-以上就是在开发环节，使用不同技术栈的情况下一种更加通用的前端国际化方案。
-
-最后说下打包环节的处理：
-
-最终打包有2种方案:
-
-* 不分语言环境最后打包到一个包中，翻译功能，图片替换, css路径，class属性等通过运行时进行处理, 后端只需要下发语言标识字段，前端通过语言标识字段去完成不同语言环境下的页面渲染工作
-* 分语言环境将源文件最终编译到不同语言环境下，不同语言环境对应于不同的最后的包,虽然最终有不同语言版本的包，但是只需要维护同一份代码, 最后可能打包出来的目录结构是:
-
-```javascript
-  |--deploy
+|--deploy
   |   |
   |   |---en
   |   |    |--app.js
@@ -390,14 +370,44 @@ webpack 2 配置:
   |   |----lang.json
 ```
 
-不过这个方案需要服务端做一定的支持，根据不同语言环境请求，返回相对应的入口文件.这种分包打包方案的`demo`可以参见`/vue-demo`文件
+接下来继续说下借助构建工具进行模块化开发的项目, 这些项目可能最后页面上的`DOM`都是通过`js`去动态插入到页面当中的。那么，很显然，可以在`DOM`被插入到页面前即可以完成`静态文案翻译`，`样式`, `图片替换`, `class属性`等替换的工作。
 
-DEMOS:
+**示例(4)**:
+`html`文件:
+```javascript
+  <div class="wrapper ${locale}">
+    <img src="/images/${locale}/test.png">
+    <p>$t('你好')</p>
+  </div>
+```
 
- * 基于`webpack`使用`vue`进行开发的`demo`，请参见`/vue-demo`文件夹
+`js`文件:
 
- * 不使用构建工具，偏纯静态页面展示的`demo`，请参见`/html-demo`文件夹
+```javascript
+  let tpl = require('html!./index.html')
+  let wrapper = document.querySelector('.box-wrapper')
+  
+  // di18n.$html方法即对你所加载的html字符串进行replace,最后相对应的语言版本
+  wrapper.innerHTML = di18n.$html(tpl)
+```
 
----
-TODOS:
-* `gulp-demo`
+最后插入到的页面当中的`DOM`为:
+
+```javascript
+  <div class="wrapper en">
+    <img src="/images/en/test.png">
+    <p>Hello</p>
+  </div>
+```
+
+这个时候动态翻译再借助引入的`di18n`上的`$t`方法
+
+```javascript
+  di18n.$t('你好')
+```
+
+这种开发方式也属于运行时处理，开发和上线后只需要维护一份代码。
+
+### 没有使用任何`framework`及`构建工具`的纯静态，偏展示性的网页
+
+这类网页的国际化，可以用上面提到的通过在代码中注入运行时来完成基本的国际化的工作, 具体内容可以参见**示例(2)**。
